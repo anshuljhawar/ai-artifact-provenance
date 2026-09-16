@@ -1,4 +1,4 @@
-/* ai-artifact-provenance inline panel renderer. Paste inside <script data-ai-artifact-provenance-panel>...</script> before </body>. No dependencies, CSP-safe (inline). */
+/* ai-artifact-provenance inline panel renderer. Place inside an inline script tag with the data-ai-artifact-provenance-panel attribute, at the end of body. No dependencies, CSP-safe. Must never contain a closing script tag. */
 (function(){var s=document.getElementById('ai-artifact-provenance');if(!s)return;var d;try{d=JSON.parse(s.textContent)}catch(e){return}
 function E(x){return String(x==null?'':x).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function O(x,k){return typeof x==='string'?(function(o){o[k]=x;return o})({}):(x||{})}

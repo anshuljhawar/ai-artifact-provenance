@@ -143,3 +143,9 @@ test('init is idempotent and writes the expected files', () => {
   assert.equal(settings.hooks.PreToolUse.length, 1);
   fs.rmSync(dir, { recursive: true, force: true });
 });
+
+test('inline renderer never contains a closing script tag', () => {
+  const src = fs.readFileSync(path.join(__dirname, '..', 'templates', 'panel.js'), 'utf8');
+  assert.ok(!/<\/script/i.test(src), 'renderer would terminate the inline <script> early');
+  assert.ok(!/<\/body/i.test(src));
+});

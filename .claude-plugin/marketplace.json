@@ -1,0 +1,14 @@
+{
+  "name": "ai-artifact-provenance",
+  "owner": { "name": "Anshul Jhawar" },
+  "metadata": { "description": "Convention and tooling so AI-generated documents carry their own context." },
+  "plugins": [
+    {
+      "name": "ai-artifact-provenance",
+      "source": "./",
+      "description": "Skill + publish gate: every artifact carries the ask, assumptions, decisions, unknowns and changelog.",
+      "version": "0.1.0",
+      "category": "productivity"
+    }
+  ]
+}

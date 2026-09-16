@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vendor choice for the payments migration</title>
+<style>
+:root{--bg:#fff;--fg:#1a1a1a;--muted:#666;--line:#ddd}
+@media (prefers-color-scheme:dark){:root{--bg:#111;--fg:#eee;--muted:#aaa;--line:#333}}
+body{margin:0;padding:24px 16px;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,sans-serif;max-width:760px;margin-inline:auto}
+h1{font-size:26px;margin:0 0 4px}h2{font-size:18px;margin:28px 0 8px}.sub{color:var(--muted);margin:0 0 20px}
+table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+</style>
+<script type="application/json" id="ai-artifact-provenance">
+{
+  "ai_artifact_provenance": "0.1",
+  "title": "Vendor choice for the payments migration",
+  "ask": "compare stripe vs adyen for our payments migration, 2 pages max, for the leadership review thursday",
+  "purpose": "Support a go/no-go on the vendor by 2026-09-18.",
+  "audience": "Engineering leadership",
+  "status": "proposal",
+  "owner": "anshul",
+  "generator": {
+    "tool": "Claude Code",
+    "model": "claude-fable-5-1"
+  },
+  "created": "2026-09-16",
+  "updated": "2026-09-16",
+  "inputs": [
+    {
+      "name": "finance/payments-volume-2026.csv",
+      "as_of": "2026-09-01"
+    },
+    {
+      "name": "Stripe and Adyen public pricing pages",
+      "as_of": "2026-09-16"
+    }
+  ],
+  "constraints": [
+    {
+      "quote": "2 pages max",
+      "source": "user"
+    },
+    {
+      "quote": "must keep PCI scope where it is today",
+      "source": "user"
+    }
+  ],
+  "assumptions": [
+    {
+      "text": "EU volume stays under 20% of total through 2027.",
+      "confirmed": false
+    },
+    {
+      "text": "Current gateway contract can be exited without penalty.",
+      "confirmed": true
+    }
+  ],
+  "decisions": [
+    {
+      "id": "D1",
+      "decision": "Recommend Adyen.",
+      "why": "Lower blended rate at our volume once EU share passes 15%.",
+      "quote": "optimise for cost at scale, not for speed of integration",
+      "rejected": [
+        {
+          "option": "Stripe",
+          "why": "Faster integration, but 0.3pt higher blended rate at projected volume."
+        }
+      ],
+      "superseded_by": null
+    },
+    {
+      "id": "D2",
+      "decision": "Drop the build-in-house option from the comparison.",
+      "why": "User asked for it to be removed.",
+      "quote": "no, we are not building this ourselves, take it out",
+      "rejected": [],
+      "superseded_by": null
+    }
+  ],
+  "unknowns": [
+    {
+      "text": "Adyen's onboarding time for our entity type.",
+      "how_to_check": "Ask the Adyen sales contact; not verified."
+    }
+  ],
+  "changelog": [
+    {
+      "version": 1,
+      "date": "2026-09-16",
+      "trigger": "compare stripe vs adyen for our payments migration, 2 pages max, for the leadership review thursday",
+      "changed": "First draft with three options."
+    },
+    {
+      "version": 2,
+      "date": "2026-09-16",
+      "trigger": "no, we are not building this ourselves, take it out",
+      "changed": "Removed in-house option; recorded as D2."
+    }
+  ],
+  "links": {
+    "source": "https://github.com/anshuljhawar/ai-artifact-provenance"
+  },
+  "how_to_question": "Comment on the shared page, or give this file to your own assistant and ask it to read the ai-artifact-provenance block."
+}
+</script>
+</head>
+<body>
+<h1>Vendor choice for the payments migration</h1>
+<p class="sub">Proposal for the leadership review, 2026-09-18</p>
+<h2>Recommendation</h2>
+<p>Move to <b>Adyen</b>. At projected 2027 volume with EU share above 15%, Adyen's blended rate is about 0.3 points lower than Stripe's. Integration takes roughly six weeks longer, which fits inside the current migration window.</p>
+<h2>Comparison</h2>
+<table><tr><th></th><th>Stripe</th><th>Adyen</th></tr>
+<tr><td>Blended rate at 2027 volume</td><td>2.1%</td><td>1.8%</td></tr>
+<tr><td>Integration effort</td><td>4 weeks</td><td>10 weeks</td></tr>
+<tr><td>PCI scope change</td><td>None</td><td>None</td></tr>
+<tr><td>EU local acquiring</td><td>Partial</td><td>Full</td></tr></table>
+<h2>Risks</h2>
+<ul><li>Onboarding time for our entity type is not confirmed.</li><li>Rate advantage depends on EU volume growth.</li></ul>
+<script data-ai-artifact-provenance-panel>/* ai-artifact-provenance inline panel renderer. Paste inside <script data-ai-artifact-provenance-panel>...</script> before </body>. No dependencies, CSP-safe (inline). */
+(function(){var s=document.getElementById('ai-artifact-provenance');if(!s)return;var d;try{d=JSON.parse(s.textContent)}catch(e){return}
+function E(x){return String(x==null?'':x).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function O(x,k){return typeof x==='string'?(function(o){o[k]=x;return o})({}):(x||{})}
+function L(a,f){return (a||[]).map(function(x){return '<li>'+f(x)+'</li>'}).join('')}
+var g=d.generator||{},cl=d.changelog||[],last=cl.length?cl[cl.length-1].version:1,h='';
+h+='<p class="aap-meta"><b>'+E(d.status)+'</b> · owner '+E(d.owner)+' · '+E(g.tool)+(g.model?' / '+E(g.model):'')+' · updated '+E(d.updated)+'</p>';
+h+='<h4>The ask</h4><blockquote>'+E(d.ask)+'</blockquote>';
+if(d.purpose||d.audience)h+='<p>'+(d.purpose?'<b>Purpose:</b> '+E(d.purpose)+' ':'')+(d.audience?'<b>Audience:</b> '+E(d.audience):'')+'</p>';
+if((d.constraints||[]).length)h+='<h4>Constraints given</h4><ul>'+L(d.constraints,function(c){c=O(c,'quote');return '“'+E(c.quote)+'”'+(c.source?' <i>('+E(c.source)+')</i>':'')})+'</ul>';
+if((d.assumptions||[]).length)h+='<h4>Assumptions the AI made</h4><ul>'+L(d.assumptions,function(a){a=O(a,'text');return E(a.text)+' <i>('+(a.confirmed?'confirmed':'unconfirmed')+')</i>'})+'</ul>';
+if((d.decisions||[]).length)h+='<h4>Decisions</h4><ul>'+L(d.decisions,function(x,i){x=O(x,'decision');var r=x.rejected||[];return '<b>'+E(x.id||'D'+(i+1))+'</b> '+E(x.decision)+(x.why?' — '+E(x.why):'')+(x.quote?' <i>“'+E(x.quote)+'”</i>':'')+(x.superseded_by?' <s>superseded by '+E(x.superseded_by)+'</s>':'')+(r.length?'<ul>'+L(r,function(q){q=O(q,'option');return 'Rejected: '+E(q.option)+(q.why?' — '+E(q.why):'')})+'</ul>':'')})+'</ul>';
+if((d.unknowns||[]).length)h+='<h4>Not verified</h4><ul>'+L(d.unknowns,function(u){u=O(u,'text');return E(u.text)+(u.how_to_check?' <i>('+E(u.how_to_check)+')</i>':'')})+'</ul>';
+if((d.inputs||[]).length)h+='<h4>Inputs</h4><ul>'+L(d.inputs,function(i){i=O(i,'name');return E(i.name)+(i.as_of?' <i>as of '+E(i.as_of)+'</i>':'')+(i.note?' — '+E(i.note):'')})+'</ul>';
+if(cl.length)h+='<h4>Versions</h4><ol reversed>'+cl.slice().reverse().map(function(c){return '<li>v'+E(c.version)+' · '+E(c.date)+' · <i>“'+E(c.trigger)+'”</i>'+(c.changed?' → '+E(c.changed):'')+'</li>'}).join('')+'</ol>';
+var ks=Object.keys(d.links||{}).filter(function(k){return d.links[k]});if(ks.length)h+='<p>'+ks.map(function(k){return '<a href="'+E(d.links[k])+'">'+E(k)+'</a>'}).join(' · ')+'</p>';
+if(d.how_to_question)h+='<p><b>To question this:</b> '+E(d.how_to_question)+'</p>';
+var el=document.createElement('details');el.className='ai-artifact-provenance-panel';el.setAttribute('data-ai-artifact-provenance-panel','');el.innerHTML='<summary>How this document was made · '+E(d.status)+' · v'+E(last)+'</summary>'+h;
+var st=document.createElement('style');st.textContent='.ai-artifact-provenance-panel{font:14px/1.5 system-ui,sans-serif;border:1px solid #c9c9c9;border-radius:6px;padding:8px 14px;margin:0 0 20px;background:#fafafa;color:#222}.ai-artifact-provenance-panel summary{cursor:pointer;font-weight:600}.ai-artifact-provenance-panel h4{margin:12px 0 4px;font-size:13px;text-transform:uppercase;letter-spacing:.04em;opacity:.7}.ai-artifact-provenance-panel ul,.ai-artifact-provenance-panel ol{margin:0;padding-left:20px}.ai-artifact-provenance-panel blockquote{margin:0;padding-left:10px;border-left:3px solid #999}.aap-meta{margin:6px 0 0;opacity:.8}@media (prefers-color-scheme:dark){.ai-artifact-provenance-panel{background:#1c1c1e;border-color:#444;color:#e6e6e6}.ai-artifact-provenance-panel blockquote{border-color:#666}}';
+document.head.appendChild(st);document.body.insertBefore(el,document.body.firstChild)})();
+</script>
+</body>
+</html>

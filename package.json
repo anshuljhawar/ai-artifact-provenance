@@ -1,0 +1,12 @@
+{
+  "name": "ai-artifact-provenance",
+  "version": "0.1.0",
+  "description": "A convention so AI-generated documents carry their own context: the ask, constraints, assumptions, decisions, unknowns and a changelog. CLI validator, Claude Code plugin, installer for Codex, Gemini CLI, Cursor.",
+  "license": "MIT",
+  "repository": "github:anshuljhawar/ai-artifact-provenance",
+  "bin": { "ai-artifact-provenance": "bin/aap.js", "aap": "bin/aap.js" },
+  "main": "lib/core.js",
+  "files": ["bin", "lib", "templates", "schema", "skills", "agents", "prompts", "hooks", ".claude-plugin", "SPEC.md", "README.md"],
+  "scripts": { "test": "node --test test/" },
+  "engines": { "node": ">=18" }
+}

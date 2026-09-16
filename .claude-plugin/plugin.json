@@ -1,0 +1,9 @@
+{
+  "name": "ai-artifact-provenance",
+  "version": "0.1.0",
+  "description": "Every document Claude publishes for other people carries an ai-artifact-provenance block: the verbatim ask, constraints, assumptions, decisions, unknowns, changelog. Includes a PreToolUse gate on artifact publishes.",
+  "author": { "name": "Anshul Jhawar" },
+  "repository": "https://github.com/anshuljhawar/ai-artifact-provenance",
+  "license": "MIT",
+  "keywords": ["provenance", "artifacts", "documentation", "governance"]
+}

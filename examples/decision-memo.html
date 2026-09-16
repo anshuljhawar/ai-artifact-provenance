@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vendor choice for the payments migration</title>
+<style>
+:root{--bg:#fff;--fg:#1a1a1a;--muted:#666;--line:#ddd}
+@media (prefers-color-scheme:dark){:root{--bg:#111;--fg:#eee;--muted:#aaa;--line:#333}}
+body{margin:0;padding:24px 16px;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,sans-serif;max-width:760px;margin-inline:auto}
+h1{font-size:26px;margin:0 0 4px}h2{font-size:18px;margin:28px 0 8px}.sub{color:var(--muted);margin:0 0 20px}
+table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+</style>
+<script type="application/json" id="ai-artifact-provenance">
+{
+  "ai_artifact_provenance": "0.1",
+  "title": "Vendor choice for the payments migration",
+  "ask": "compare stripe vs adyen for our payments migration, 2 pages max, for the leadership review thursday",
+  "purpose": "Support a go/no-go on the vendor by 2026-09-18.",
+  "audience": "Engineering leadership",
+  "status": "proposal",
+  "owner": "anshul",
+  "generator": {
+    "tool": "Claude Code",
+    "model": "claude-fable-5-1"
+  },
+  "created": "2026-09-16",
+  "updated": "2026-09-16",
+  "inputs": [
+    {
+      "name": "finance/payments-volume-2026.csv",
+      "as_of": "2026-09-01"
+    },
+    {
+      "name": "Stripe and Adyen public pricing pages",
+      "as_of": "2026-09-16"
+    }
+  ],
+  "constraints": [
+    {
+      "quote": "2 pages max",
+      "source": "user"
+    },
+    {
+      "quote": "must keep PCI scope where it is today",
+      "source": "user"
+    }
+  ],
+  "assumptions": [
+    {
+      "text": "EU volume stays under 20% of total through 2027.",
+      "confirmed": false
+    },
+    {
+      "text": "Current gateway contract can be exited without penalty.",
+      "confirmed": true
+    }
+  ],
+  "decisions": [
+    {
+      "id": "D1",
+      "decision": "Recommend Adyen.",
+      "why": "Lower blended rate at our volume once EU share passes 15%.",
+      "quote": "optimise for cost at scale, not for speed of integration",
+      "rejected": [
+        {
+          "option": "Stripe",
+          "why": "Faster integration, but 0.3pt higher blended rate at projected volume."
+        }
+      ],
+      "superseded_by": null
+    },
+    {
+      "id": "D2",
+      "decision": "Drop the build-in-house option from the comparison.",
+      "why": "User asked for it to be removed.",
+      "quote": "no, we are not building this ourselves, take it out",
+      "rejected": [],
+      "superseded_by": null
+    }
+  ],
+  "unknowns": [
+    {
+      "text": "Adyen's onboarding time for our entity type.",
+      "how_to_check": "Ask the Adyen sales contact; not verified."
+    }
+  ],
+  "changelog": [
+    {
+      "version": 1,
+      "date": "2026-09-16",
+      "trigger": "compare stripe vs adyen for our payments migration, 2 pages max, for the leadership review thursday",
+      "changed": "First draft with three options."
+    },
+    {
+      "version": 2,
+      "date": "2026-09-16",
+      "trigger": "no, we are not building this ourselves, take it out",
+      "changed": "Removed in-house option; recorded as D2."
+    }
+  ],
+  "links": {
+    "source": "https://github.com/anshuljhawar/ai-artifact-provenance"
+  },
+  "how_to_question": "Comment on the shared page, or give this file to your own assistant and ask it to read the ai-artifact-provenance block."
+}
+</script>
+</head>
+<body>
+<h1>Vendor choice for the payments migration</h1>
+<p class="sub">Proposal for the leadership review, 2026-09-18</p>
+<h2>Recommendation</h2>
+<p>Move to <b>Adyen</b>. At projected 2027 volume with EU share above 15%, Adyen's blended rate is about 0.3 points lower than Stripe's. Integration takes roughly six weeks longer, which fits inside the current migration window.</p>
+<h2>Comparison</h2>
+<table><tr><th></th><th>Stripe</th><th>Adyen</th></tr>
+<tr><td>Blended rate at 2027 volume</td><td>2.1%</td><td>1.8%</td></tr>
+<tr><td>Integration effort</td><td>4 weeks</td><td>10 weeks</td></tr>
+<tr><td>PCI scope change</td><td>None</td><td>None</td></tr>
+<tr><td>EU local acquiring</td><td>Partial</td><td>Full</td></tr></table>
+<h2>Risks</h2>
+<ul><li>Onboarding time for our entity type is not confirmed.</li><li>Rate advantage depends on EU volume growth.</li></ul>
+</body>
+</html>

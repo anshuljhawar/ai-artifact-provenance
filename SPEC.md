@@ -6,10 +6,12 @@
 
 The context travels **inside the document**. Not in a vendor's session, not in a sidecar file. An HTML or Markdown file gets emailed, uploaded and re-hosted; the block goes with it.
 
-Two representations of the same data live in the file:
+The block has two modes:
 
-1. **Machine-readable block**, a JSON object at a fixed location with a fixed id, so any agent or script finds it without guessing.
-2. **Human-readable panel**, rendered from that JSON, collapsed at the top of the page.
+1. **Data mode (default).** A JSON object at a fixed location with a fixed id. Invisible to a reader of the rendered page; found by any agent, script or the `aap` CLI. The document looks exactly as it would without the block.
+2. **Panel mode (opt-in).** The same block, plus a collapsed "How this document was made" panel rendered from it at the top of the page, for readers who want the context without tooling.
+
+A producer uses data mode unless the user asks for the visible panel. Any document can be switched between modes with `aap panel <file> --write` and `aap panel <file> --remove --write` without touching the data.
 
 ## 2. Where the block lives
 
@@ -21,7 +23,9 @@ Two representations of the same data live in the file:
 </script>
 ```
 
-Place it in `<head>` or at the start of `<body>`. Exactly one block per document. The panel is rendered by an inline script (see `templates/panel.js`) or emitted as static HTML with the marker attribute `data-ai-artifact-provenance-panel`.
+Place it in `<head>` or at the start of `<body>`. Exactly one block per document. That is all data mode needs.
+
+In panel mode the panel is rendered by an inline script (see `templates/panel.js`) inside `<script data-ai-artifact-provenance-panel>`, or emitted as static HTML with the marker attribute `data-ai-artifact-provenance-panel`. The marker attribute is how tools detect panel mode.
 
 ### Markdown
 
@@ -33,7 +37,7 @@ A fenced code block whose info string is `json ai-artifact-provenance`, placed b
 ```
 ````
 
-Markdown renderers show it as a JSON code block, which is the human-readable fallback.
+Markdown has no separate panel mode: renderers show the fence as a JSON code block, which doubles as the visible form.
 
 ## 3. The block
 

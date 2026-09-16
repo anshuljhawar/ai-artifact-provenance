@@ -12,4 +12,4 @@ The JSON object has these fields. Required: `"ai_artifact_provenance": "0.1"`, `
 
 Rules: quotes are verbatim, never paraphrased. When I ask for changes, append a new changelog entry and keep the old ones. When I reverse a decision, mark the old one superseded_by the new id instead of deleting it. What I told you is a constraint; what you chose is an assumption.
 
-Also render a collapsed panel at the top of HTML documents titled "How this document was made" that shows the same information, so people can read it without opening the source.
+Keep the block invisible on the rendered page by default. Only if I ask for a visible version, also render a collapsed panel at the top of the HTML titled "How this document was made" that shows the same information.

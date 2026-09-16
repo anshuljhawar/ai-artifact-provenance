@@ -18,16 +18,24 @@ const good = () => ({
 const html = (obj, extra = '') => `<!doctype html><html><head><title>t</title><script type="application/json" id="ai-artifact-provenance">${JSON.stringify(obj)}</script></head><body><h1>hi</h1>${extra}</body></html>`;
 const md = obj => `# Doc\n\ntext\n\n\`\`\`json ai-artifact-provenance\n${JSON.stringify(obj)}\n\`\`\`\n`;
 
-test('valid html block passes, warns about missing panel', () => {
+test('valid html block passes; data-only is the default and does not warn about a panel', () => {
   const r = core.validate(html(good()), { kind: 'html' });
   assert.equal(r.ok, true, r.errors.join('\n'));
-  assert.ok(r.warnings.some(w => /panel/.test(w)));
+  assert.ok(!r.warnings.some(w => /panel/.test(w)));
   assert.equal(r.data.decisions[0].rejected[0].option, 'B');
 });
 
-test('panel marker removes the warning', () => {
-  const r = core.validate(html(good(), '<script data-ai-artifact-provenance-panel>1</script>'), { kind: 'html' });
-  assert.ok(!r.warnings.some(w => /panel/.test(w)));
+test('requirePanel makes a missing panel an error; present panel passes', () => {
+  assert.equal(core.validate(html(good()), { kind: 'html', requirePanel: true }).ok, false);
+  assert.equal(core.validate(html(good(), '<script data-ai-artifact-provenance-panel>1</script>'), { kind: 'html', requirePanel: true }).ok, true);
+});
+
+test('stripPanel removes inline and static panels; inject without renderer adds none', () => {
+  const withInline = html(good(), '<script data-ai-artifact-provenance-panel>1</script>');
+  assert.ok(!core.hasPanel(core.stripPanel(withInline)));
+  const withStatic = html(good(), core.PANEL_CSS + core.panelHtml(good()));
+  assert.ok(!core.hasPanel(core.stripPanel(withStatic)));
+  assert.ok(!core.hasPanel(core.inject('<html><head></head><body></body></html>', good(), { kind: 'html' })));
 });
 
 test('markdown block passes and kind is detected from filename', () => {
@@ -96,8 +104,14 @@ test('panelHtml escapes and includes sections', () => {
   assert.match(p, /data-ai-artifact-provenance-panel/);
 });
 
+test('default example has no panel, panel example has one', () => {
+  const read = f => fs.readFileSync(path.join(__dirname, '..', f), 'utf8');
+  assert.equal(core.hasPanel(read('examples/decision-memo.html')), false);
+  assert.equal(core.hasPanel(read('examples/decision-memo-panel.html')), true);
+});
+
 test('examples validate', () => {
-  for (const f of ['examples/decision-memo.html', 'examples/status-report.md']) {
+  for (const f of ['examples/decision-memo.html', 'examples/decision-memo-panel.html', 'examples/status-report.md']) {
     const p = path.join(__dirname, '..', f);
     const r = core.validate(fs.readFileSync(p, 'utf8'), { filename: p });
     assert.equal(r.ok, true, `${f}: ${r.errors.join('; ')}`);
@@ -123,6 +137,7 @@ test('hook blocks Artifact publish of html without block, allows with block, ign
   fs.writeFileSync(tmp, html(good()));
   assert.equal(run({ tool_name: 'Artifact', tool_input: { file_path: tmp } }).status, 0);
   assert.equal(run({ tool_name: 'Write', tool_input: { file_path: 'x.html', content: '<html></html>' } }).status, 0, 'Write not gated by default');
+  assert.equal(spawnSync('node', [BIN, 'hook'], { input: JSON.stringify({ tool_name: 'Artifact', tool_input: { file_path: tmp } }), env: { ...process.env, AAP_REQUIRE_PANEL: '1' } }).status, 2, 'AAP_REQUIRE_PANEL blocks data-only');
   assert.equal(spawnSync('node', [BIN, 'hook'], { input: JSON.stringify({ tool_name: 'Write', tool_input: { file_path: 'x.html', content: '<html></html>' } }), env: { ...process.env, AAP_GATE_WRITE: '1' } }).status, 2);
   fs.unlinkSync(tmp);
 });

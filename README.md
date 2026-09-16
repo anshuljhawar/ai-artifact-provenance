@@ -6,14 +6,28 @@ Claude, Codex, Gemini, Grok and friends all produce polished HTML and Markdown d
 
 This repo is a small convention plus tooling that fixes that:
 
-- **A block** embedded in the document itself (JSON with a fixed id), so it survives email, upload and re-hosting, and any agent can find it.
-- **A panel** rendered from that block, collapsed at the top of the page: "How this document was made".
+- **A block** embedded in the document itself (JSON with a fixed id), so it survives email, upload and re-hosting, and any agent can find it. **Invisible by default**: the page looks exactly as it would without it.
+- **An optional panel** rendered from that block, collapsed at the top of the page: "How this document was made". Turn it on per document when readers want the context without tooling.
 - **A CLI** to validate, read, and turn the block into reviewer questions.
 - **A Claude Code plugin** with a skill and a hook that refuses to publish an artifact without a valid block.
 - **An installer** that drops the same instruction into AGENTS.md, CLAUDE.md, GEMINI.md and Cursor rules, adds a git pre-commit gate, and installs the skill for Codex.
 - **A paste-able prompt** for web-only agents.
 
-Nothing to install on the reader's side. Open the file and the panel is there. Or give the file to any assistant and ask "why was X rejected?"
+Nothing to install on the reader's side. Give the file to any assistant and ask "why was X rejected?", run `aap show`, or, if the producer turned the panel on, just expand it at the top of the page.
+
+## Two modes
+
+| Mode | What the reader sees | When |
+|---|---|---|
+| **Data** (default) | Nothing. The block sits in the page source. | Every document. Agents, `aap`, and anyone who views source get the context. |
+| **Panel** | A collapsed "How this document was made" bar at the top. | When the user asks for it, or for documents going to readers without tooling. |
+
+```sh
+aap panel memo.html --write            # turn the panel on (inline renderer, CSP-safe)
+aap panel memo.html --static --write   # panel as static HTML, for readers with JavaScript off
+aap panel memo.html --remove --write   # back to data mode
+aap check memo.html --require-panel    # enforce panel mode in CI; or AAP_REQUIRE_PANEL=1 for the hook
+```
 
 ## What the block holds
 
@@ -30,7 +44,7 @@ Nothing to install on the reader's side. Open the file and the panel is there. O
 | `unknowns` | Not verified, with how to check |
 | `changelog` | One entry per publish: the prompt that triggered it, what changed. Append-only. |
 
-Full field reference and rules: [SPEC.md](SPEC.md). Schema: [schema/ai-artifact-provenance.schema.json](schema/ai-artifact-provenance.schema.json). Working examples: [examples/decision-memo.html](examples/decision-memo.html), [examples/status-report.md](examples/status-report.md).
+Full field reference and rules: [SPEC.md](SPEC.md). Schema: [schema/ai-artifact-provenance.schema.json](schema/ai-artifact-provenance.schema.json). Working examples: [examples/decision-memo.html](examples/decision-memo.html) (data mode), [examples/decision-memo-panel.html](examples/decision-memo-panel.html) (panel mode), [examples/status-report.md](examples/status-report.md).
 
 ## Install
 
@@ -56,7 +70,7 @@ npm i -g github:anshuljhawar/ai-artifact-provenance
 /plugin install ai-artifact-provenance@ai-artifact-provenance
 ```
 
-The skill teaches Claude what to embed and how to keep the changelog across republishes. The hook blocks any `Artifact` publish of an `.html` or `.md` file that lacks a valid block, and tells Claude what to fix. Set `AAP_STRICT=1` to also block on warnings, `AAP_GATE_WRITE=1` to also gate `Write` of `.html` files.
+The skill teaches Claude what to embed and how to keep the changelog across republishes. The hook blocks any `Artifact` publish of an `.html` or `.md` file that lacks a valid block, and tells Claude what to fix. Set `AAP_STRICT=1` to also block on warnings, `AAP_GATE_WRITE=1` to also gate `Write` of `.html` files, `AAP_REQUIRE_PANEL=1` to require the visible panel.
 
 ### Codex, Gemini CLI, Cursor
 
@@ -78,14 +92,14 @@ aap questions memo.html     # what to challenge: unconfirmed assumptions, unknow
 aap show memo.html --json   # raw block for your own tooling
 ```
 
-Or open the file. The panel is at the top. Or give the file to any assistant and ask it to read the `ai-artifact-provenance` block.
+Or give the file to any assistant and ask it to read the `ai-artifact-provenance` block. If the producer turned the panel on, expand it at the top of the page.
 
 **As a maintainer:**
 
 ```sh
 aap check docs/*.html reports/*.md      # CI gate; exit 1 on errors, --strict also fails on warnings
-aap add new.html --write --owner you --tool "Claude Code"   # skeleton block + inline panel renderer
-aap render memo.html --write            # static panel, for readers with JavaScript off
+aap add new.html --write --owner you --tool "Claude Code"   # skeleton block (add --panel for the visible panel)
+aap panel memo.html --write             # turn the visible panel on; --remove turns it off
 ```
 
 ## Why these rules
@@ -108,14 +122,14 @@ aap render memo.html --write            # static panel, for readers with JavaScr
 SPEC.md                         the convention
 schema/                         JSON schema for the block
 lib/core.js                     locate, validate, normalize, render, questions (no dependencies)
-bin/aap.js                      CLI: check, show, questions, render, add, hook, init
-templates/panel.js              inline panel renderer, CSP-safe
+bin/aap.js                      CLI: check, show, questions, panel, add, hook, init
+templates/panel.js              inline panel renderer, CSP-safe, used only in panel mode
 skills/ai-artifact-provenance/  agent skill (Claude Code plugin, Codex, user skills folder)
 agents/AGENTS.snippet.md        instruction text for AGENTS.md / CLAUDE.md / GEMINI.md / Cursor
 prompts/paste.md                for web-only agents
 hooks/hooks.json                Claude Code plugin hook
 .claude-plugin/                 plugin and marketplace manifests
-examples/                       a decision memo (HTML) and a status report (Markdown)
+examples/                       a decision memo in data and panel modes (HTML), a status report (Markdown)
 test/                           node --test
 ```
 

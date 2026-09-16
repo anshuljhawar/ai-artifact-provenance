@@ -41,7 +41,9 @@ Do this **before the first publish** and **again on every republish**.
 </script>
 ```
 
-and the panel renderer just before `</body>`. It draws a collapsed "How this document was made" panel at the top of the page. It is inline, has no CDN dependency, and works under the artifact Content Security Policy. Get it with `aap snippet`, or copy `templates/panel.js` next to this file. It must sit inside `<script data-ai-artifact-provenance-panel> ... </script>`.
+That is the default, **data mode**: the block is invisible on the rendered page and the document looks exactly as it would without it.
+
+**Panel mode, only when asked.** If the user asks for the context to be visible ("show how this was made", "add the provenance panel", "visible provenance"), also add the panel renderer just before `</body>`. It draws a collapsed "How this document was made" panel at the top of the page. It is inline, has no CDN dependency, and works under the artifact Content Security Policy. Get it with `aap snippet`, or copy `panel.js` next to this file. It must sit inside `<script data-ai-artifact-provenance-panel> ... </script>`. To switch an existing file: `aap panel <file> --write` or `aap panel <file> --remove --write`.
 
 **Markdown**: as the last section:
 
@@ -64,6 +66,7 @@ If the `aap` CLI is on PATH (or `npx --yes github:anshuljhawar/ai-artifact-prove
 3. Supersede, never delete. Old decisions get `superseded_by`; assumptions flip `confirmed`.
 4. User said it: constraint. You chose it: assumption.
 5. The block is not a one-time header. It is regenerated on every publish.
+7. Data mode by default. Do not add the visible panel unless the user asked for it; do not remove it once they have.
 6. Keep it honest: if you did nothing on your own, `assumptions: []` is a claim you are making.
 
 ## When reading a document that has a block

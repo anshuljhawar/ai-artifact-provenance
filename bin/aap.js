@@ -14,13 +14,16 @@ const args = argv.slice(1).filter(a => !a.startsWith('--'));
 
 const USAGE = `ai-artifact-provenance (aap) v${require('../package.json').version}
 
-  aap check <file...> [--json] [--strict]   validate the block (exit 1 on errors; --strict also fails on warnings)
+  aap check <file...> [--json] [--strict] [--require-panel]
+                                            validate the block (exit 1 on errors; --strict also fails on warnings)
   aap check --stdin [--kind html|md]        validate content from stdin
   aap show <file> [--json]                  print the block (human summary, or raw JSON)
   aap questions <file>                      print what a reviewer should challenge
-  aap render <file> [--write]               static HTML panel from the block (HTML only)
-  aap add <file> [--write] [--owner X] [--tool X] [--model X] [--ask "..."]
-                                            insert a skeleton block (and inline renderer for HTML)
+  aap panel <file> [--write] [--static] [--remove]
+                                            add the visible "How this document was made" panel (inline renderer,
+                                            or --static HTML), or --remove it. Default documents have no panel.
+  aap add <file> [--write] [--panel] [--owner X] [--tool X] [--model X] [--ask "..."]
+                                            insert a skeleton block; --panel also adds the visible panel
   aap hook                                  Claude Code PreToolUse hook (reads tool JSON on stdin)
   aap init [dir] [--codex] [--claude-skill] [--no-git-hook] [--no-claude-hook]
                                             install instruction files, hooks and skills into a project
@@ -41,7 +44,7 @@ function cmdCheck() {
   const strict = flags.has('--strict');
   if (flags.has('--stdin')) {
     const kindIdx = argv.indexOf('--kind');
-    const r = core.validate(readStdin(), { kind: kindIdx > -1 ? argv[kindIdx + 1] : undefined });
+    const r = core.validate(readStdin(), { kind: kindIdx > -1 ? argv[kindIdx + 1] : undefined, requirePanel: flags.has('--require-panel') });
     if (flags.has('--json')) console.log(JSON.stringify(r, null, 2)); else report('<stdin>', r);
     process.exit(r.ok && !(strict && r.warnings.length) ? 0 : 1);
   }
@@ -49,7 +52,7 @@ function cmdCheck() {
   let failed = false;
   const results = {};
   for (const f of args) {
-    const r = core.validate(read(f), { filename: f });
+    const r = core.validate(read(f), { filename: f, requirePanel: flags.has('--require-panel') });
     results[f] = r;
     if (!r.ok || (strict && r.warnings.length)) failed = true;
     if (!flags.has('--json')) report(f, r);
@@ -95,17 +98,21 @@ function cmdQuestions() {
   if (!qs.length) console.log('  (nothing flagged: no unconfirmed assumptions, unknowns or rejected alternatives)');
 }
 
-function cmdRender() {
+function cmdPanel() {
   const f = args[0]; if (!f) { console.error(USAGE); process.exit(2); }
   const content = read(f);
   const r = loadOrDie(f);
-  if (r.kind !== 'html') { console.error('render: only HTML documents get a static panel'); process.exit(2); }
-  const panel = core.PANEL_CSS + core.panelHtml(r.data);
-  if (!flags.has('--write')) { console.log(panel); return; }
-  let out = content.replace(/<script[^>]*data-ai-artifact-provenance-panel[^>]*>[\s\S]*?<\/script>/i, '').replace(/<details class="ai-artifact-provenance-panel"[\s\S]*?<\/details>/i, '').replace(/<style data-ai-artifact-provenance-style>[\s\S]*?<\/style>/i, '');
-  out = /<body[^>]*>/i.test(out) ? out.replace(/<body[^>]*>/i, m => `${m}\n${panel}`) : panel + '\n' + out;
+  if (r.kind !== 'html') { console.error('panel: only HTML documents get a visible panel; Markdown shows the block as a code fence'); process.exit(2); }
+  let out;
+  if (flags.has('--remove')) out = core.stripPanel(content);
+  else if (flags.has('--static')) {
+    out = core.stripPanel(content);
+    const panel = core.PANEL_CSS + core.panelHtml(r.data);
+    out = /<body[^>]*>/i.test(out) ? out.replace(/<body[^>]*>/i, m => `${m}\n${panel}`) : panel + '\n' + out;
+  } else out = core.addRenderer(core.stripPanel(content), RENDERER);
+  if (!flags.has('--write')) { console.log(out); return; }
   fs.writeFileSync(f, out);
-  console.log(`rendered static panel into ${f}`);
+  console.log(`${flags.has('--remove') ? 'removed panel from' : 'added ' + (flags.has('--static') ? 'static' : 'inline') + ' panel to'} ${f}`);
 }
 
 function flagVal(name) { const i = argv.indexOf(name); return i > -1 ? argv[i + 1] : undefined; }
@@ -117,10 +124,10 @@ function cmdAdd() {
   if (core.locate(content, kind).count) { console.error(`${f} already has a block. Use "aap show" or edit it in place.`); process.exit(1); }
   const block = core.skeleton({ owner: flagVal('--owner') || os.userInfo().username, generator: { tool: flagVal('--tool') || '', model: flagVal('--model') || '' }, ask: flagVal('--ask') || '', title: flagVal('--title') || '' });
   if (!block.changelog[0].trigger) block.changelog[0].trigger = block.ask;
-  const out = core.inject(content, block, { kind, renderer: RENDERER });
+  const out = core.inject(content, block, { kind, renderer: flags.has('--panel') ? RENDERER : undefined });
   if (!flags.has('--write')) { console.log(out); return; }
   fs.writeFileSync(f, out);
-  console.log(`added skeleton block to ${f}. Fill: ask (verbatim), status, owner, generator, assumptions, unknowns, changelog[0].trigger.`);
+  console.log(`added skeleton block${flags.has('--panel') ? ' and visible panel' : ''} to ${f}. Fill: ask (verbatim), status, owner, generator, assumptions, unknowns, changelog[0].trigger.`);
 }
 
 /** Claude Code PreToolUse hook. Blocks Artifact publishes of html/md files without a valid block. */
@@ -142,7 +149,7 @@ function cmdHook() {
     if (!ti.file_path || !/\.(html?)$/i.test(ti.file_path) || typeof ti.content !== 'string') process.exit(0);
     content = ti.content; label = ti.file_path; kind = 'html';
   } else process.exit(0);
-  const r = core.validate(content, { kind });
+  const r = core.validate(content, { kind, requirePanel: process.env.AAP_REQUIRE_PANEL === '1' });
   if (r.ok && !(strict && r.warnings.length)) process.exit(0);
   const lines = [
     `ai-artifact-provenance: ${label} cannot be published without a valid provenance block.`,
@@ -150,7 +157,7 @@ function cmdHook() {
     ...r.warnings.map(w => `  warn:  ${w}`),
     '',
     'Fix: add or update the <script type="application/json" id="ai-artifact-provenance"> block (see the ai-artifact-provenance skill or `aap agents-md`),',
-    'quote the user verbatim in ask/constraints/decisions/changelog.trigger, append a changelog entry for this publish, include the inline panel renderer, then publish again.',
+    'quote the user verbatim in ask/constraints/decisions/changelog.trigger, append a changelog entry for this publish, then publish again. The block is data-only by default; add the visible panel only if the user asked for it.',
   ];
   console.error(lines.join('\n'));
   process.exit(2);
@@ -242,7 +249,8 @@ switch (cmd) {
   case 'check': cmdCheck(); break;
   case 'show': cmdShow(); break;
   case 'questions': cmdQuestions(); break;
-  case 'render': cmdRender(); break;
+  case 'panel': cmdPanel(); break;
+  case 'render': cmdPanel(); break; // deprecated alias
   case 'add': cmdAdd(); break;
   case 'hook': cmdHook(); break;
   case 'init': cmdInit(); break;
